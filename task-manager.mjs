@@ -1,16 +1,36 @@
-const tasks = [
-  {
-    id: 1,
-    description: 'first task',
-    status: 'todo',
-    createdAt: '2024-11-01T20:49:09.598Z',
-    updatedAt: '2024-11-01T20:49:09.598Z'
-  }
-];
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const dataFilePath = join(process.cwd(), 'tasks.json');
+
+let tasks = [];
 
 const taskStatuses = ['todo', 'done', 'in-progress'];
 
-let newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
+let newTaskId = 1;
+
+// Load tasks from the JSON file
+function loadTasks() {
+  try {
+    if (existsSync(dataFilePath)) {
+      const data = readFileSync(dataFilePath);
+      tasks = JSON.parse(data);
+      newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
+    }
+  } catch (error) {
+    tasks = [];
+    console.error('Error loading tasks:', error.message);
+  }
+}
+
+// Save tasks to the JSON file
+function saveTasks() {
+  try {
+    writeFileSync(dataFilePath, JSON.stringify(tasks, null, 2));
+  } catch (error) {
+    console.error(`Error saving tasks: ${error.message}`);
+  }
+}
 
 // Validate description
 function validateDescription(description) {
@@ -33,7 +53,6 @@ function validateId(id) {
 
 // Validate status
 function validateStatus(status) {
-  console.log({ status })
   if (!taskStatuses.includes(status)) {
     console.error('Error: Please provide a valid status (todo, in-progress, done).');
     return false;
@@ -58,6 +77,7 @@ export function addTask(description) {
   }
 
   tasks.push(task);
+  saveTasks();
   console.log(`Task created: [ID: ${task.id}] - ${task.description} (${task.status})`);
 }
 
@@ -76,6 +96,7 @@ export function updateTask(id, description) {
   task.description = description.trim();
   task.status = 'todo';
   task.updatedAt = (new Date()).toISOString();
+  saveTasks();
   console.log(`Task updated: [ID: ${id}] - ${task.description} (${task.status})`);
 }
 
@@ -90,6 +111,7 @@ export function deleteTask(id) {
   }
 
   tasks.splice(index, 1);
+  saveTasks();
   console.log(`Task [ID: ${id}] is succesfully deleted.`);
 }
 
@@ -107,5 +129,9 @@ export function markTaskStatus(id, status) {
 
   task.status = status;
   task.updatedAt = (new Date()).toISOString();
+  saveTasks();
   console.log(`Task [ID: ${id}] status changed to: ${status}`);
 }
+
+// Load tasks when the module is imported
+loadTasks();
