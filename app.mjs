@@ -1,4 +1,4 @@
-import { addTask, getTasks, updateTask } from "./task-manager.mjs";
+import { addTask, deleteTask, getTasks, updateTask } from "./task-manager.mjs";
 
 const args = process.argv.splice(2);
 
@@ -25,6 +25,10 @@ function runApp() {
     const id = args[1];
     const description = args.slice(2).join(' ');
     updateTask(id, description);
+  }
+  else if (cmd === 'delete') {
+    const id = args[1];
+    deleteTask(id);
   }
   else {
     console.error('Error: Unknown command. Please use: list, create, delete, update, or status.');

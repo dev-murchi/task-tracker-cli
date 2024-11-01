@@ -55,13 +55,27 @@ export function updateTask(id, description) {
 
   const task = tasks.find(task => task.id === id);
 
-  if (task) {
-    task.description = description.trim();
-    task.status = 'todo';
-    task.updatedAt = (new Date()).toISOString();
-    console.log(`Task updated: [ID: ${id}] - ${task.description} (${task.status})`);
-  }
-  else {
+  if (!task) {
     console.log(`Task [ID: ${id}] is not found.`);
+    return;
   }
+
+  task.description = description.trim();
+  task.status = 'todo';
+  task.updatedAt = (new Date()).toISOString();
+  console.log(`Task updated: [ID: ${id}] - ${task.description} (${task.status})`);
+}
+
+export function deleteTask(id) {
+  if (!validateId(id)) return;
+  id = parseInt(id);
+  const index = tasks.findIndex(task => task.id === id);
+
+  if (index === -1) {
+    console.log(`Task [ID: ${id}] is not found.`);
+    return;
+  }
+
+  tasks.splice(index, 1);
+  console.log(`Task [ID: ${id}] is succesfully deleted.`);
 }
