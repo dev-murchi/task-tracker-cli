@@ -36,7 +36,7 @@ function runApp() {
     markTaskStatus(id, status);
   }
   else {
-    console.error('Error: Unknown command. Please use: list, create, delete, update, or status.');
+    console.error('Error: Unknown command. Please use: list, add, delete, update, or status.');
   }
 
 }
