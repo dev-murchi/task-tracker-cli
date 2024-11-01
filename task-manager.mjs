@@ -8,6 +8,8 @@ const tasks = [
   }
 ];
 
+const taskStatuses = ['todo', 'done', 'in-progress'];
+
 let newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
 
 // Validate description
@@ -26,6 +28,17 @@ function validateId(id) {
     console.error('Error: Please provide a valid task ID.');
     return false;
   };
+  return true;
+}
+
+// Validate status
+function validateStatus(status) {
+  console.log({ status })
+  if (!taskStatuses.includes(status)) {
+    console.error('Error: Please provide a valid status (todo, in-progress, done).');
+    return false;
+  }
+
   return true;
 }
 
@@ -78,4 +91,21 @@ export function deleteTask(id) {
 
   tasks.splice(index, 1);
   console.log(`Task [ID: ${id}] is succesfully deleted.`);
+}
+
+export function markTaskStatus(id, status) {
+  if (!validateId(id) || !validateStatus(status)) return;
+
+  id = parseInt(id);
+
+  const task = tasks.find(task => task.id === id);
+
+  if (!task) {
+    console.log(`Task [ID: ${id}] is not found.`);
+    return;
+  }
+
+  task.status = status;
+  task.updatedAt = (new Date()).toISOString();
+  console.log(`Task [ID: ${id}] status changed to: ${status}`);
 }
