@@ -1,4 +1,12 @@
-const tasks = [];
+const tasks = [
+  {
+    id: 1,
+    description: 'first task',
+    status: 'todo',
+    createdAt: '2024-11-01T20:49:09.598Z',
+    updatedAt: '2024-11-01T20:49:09.598Z'
+  }
+];
 
 let newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
 
@@ -11,6 +19,15 @@ function validateDescription(description) {
   return true;
 }
 
+// Validate id
+function validateId(id) {
+  const regexOnlyNumber = /^[0-9]+$/;
+  if (!regexOnlyNumber.test(id)) {
+    console.error('Error: Please provide a valid task ID.');
+    return false;
+  };
+  return true;
+}
 
 export function getTasks() {
   return tasks;
@@ -29,4 +46,22 @@ export function addTask(description) {
 
   tasks.push(task);
   console.log(`Task created: [ID: ${task.id}] - ${task.description} (${task.status})`);
+}
+
+export function updateTask(id, description) {
+  if (!validateId(id) || !validateDescription(description)) return;
+
+  id = parseInt(id);
+
+  const task = tasks.find(task => task.id === id);
+
+  if (task) {
+    task.description = description.trim();
+    task.status = 'todo';
+    task.updatedAt = (new Date()).toISOString();
+    console.log(`Task updated: [ID: ${id}] - ${task.description} (${task.status})`);
+  }
+  else {
+    console.log(`Task [ID: ${id}] is not found.`);
+  }
 }
