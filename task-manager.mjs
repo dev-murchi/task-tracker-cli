@@ -19,7 +19,7 @@ function loadTasks() {
     }
   } catch (error) {
     tasks = [];
-    console.error('Error loading tasks:', error.message);
+    throw new Error('Error loading tasks:', error.message);
   }
 }
 
@@ -28,116 +28,140 @@ function saveTasks() {
   try {
     writeFileSync(dataFilePath, JSON.stringify(tasks, null, 2));
   } catch (error) {
-    console.error(`Error saving tasks: ${error.message}`);
+    throw new Error(`Error saving tasks: ${error.message}`);
   }
 }
 
 // Validate description
 function validateDescription(description) {
-  if (!description || description.trim() === '') {
-    console.error('Error: Please provide a valid task description. Description cannot be empty.');
-    return false;
-  }
-  return true;
+  return (description && description.trim() !== '');
 }
 
 // Validate id
 function validateId(id) {
   const regexOnlyNumber = /^[0-9]+$/;
-  if (!regexOnlyNumber.test(id)) {
-    console.error('Error: Please provide a valid task ID.');
-    return false;
-  };
-  return true;
+  return regexOnlyNumber.test(id);
 }
 
 // Validate status
 function validateStatus(status) {
-  if (!taskStatuses.includes(status)) {
-    console.error('Error: Please provide a valid status (todo, in-progress, done).');
-    return false;
-  }
-
-  return true;
+  return taskStatuses.includes(status);
 }
 
 export function getTasks() {
-  loadTasks();
+  try {
+    loadTasks();
+  } catch (error) {
+    console.error(error.message);
+  }
   return tasks;
 }
 
 export function addTask(description) {
-  loadTasks();
-  if (!validateDescription(description)) return;
+  try {
+    loadTasks();
+    if (!validateDescription(description)) {
+      throw new Error('Error: Please provide a valid task description. Description cannot be empty.');
+    };
 
-  const task = {
-    id: newTaskId++,
-    description: description.trim(),
-    status: 'todo',
-    createdAt: '',
-    updatedAt: '',
+    const task = {
+      id: newTaskId++,
+      description: description.trim(),
+      status: 'todo',
+      createdAt: '',
+      updatedAt: '',
+    }
+
+    const date = (new Date()).toISOString();
+    task.createdAt = date;
+    task.updatedAt = date;
+
+    tasks.push(task);
+    saveTasks();
+    console.log(`Task created: [ID: ${task.id}] - ${task.description} (${task.status})`);
+  } catch (error) {
+    console.error(error.message)
   }
-
-  const date = (new Date()).toISOString();
-  task.createdAt = date;
-  task.updatedAt = date;
-
-  tasks.push(task);
-  saveTasks();
-  console.log(`Task created: [ID: ${task.id}] - ${task.description} (${task.status})`);
 }
 
 export function updateTask(id, description) {
-  loadTasks();
-  if (!validateId(id) || !validateDescription(description)) return;
+  try {
+    loadTasks();
+    if (!validateId(id)) {
+      throw new Error('Error: Please provide a valid task ID.');
+    };
 
-  id = parseInt(id);
+    if (!validateDescription(description)) {
+      throw new Error('Error: Please provide a valid task description. Description cannot be empty.');
+    };
 
-  const task = tasks.find(task => task.id === id);
+    id = parseInt(id);
 
-  if (!task) {
-    console.log(`Task [ID: ${id}] is not found.`);
-    return;
+    const task = tasks.find(task => task.id === id);
+
+    if (!task) {
+      console.log(`Task [ID: ${id}] is not found.`);
+      return;
+    }
+
+    task.description = description.trim();
+    task.status = 'todo';
+    task.updatedAt = (new Date()).toISOString();
+    saveTasks();
+    console.log(`Task updated: [ID: ${id}] - ${task.description} (${task.status})`);
+  } catch (error) {
+    console.error(error.message);
   }
-
-  task.description = description.trim();
-  task.status = 'todo';
-  task.updatedAt = (new Date()).toISOString();
-  saveTasks();
-  console.log(`Task updated: [ID: ${id}] - ${task.description} (${task.status})`);
 }
 
 export function deleteTask(id) {
-  loadTasks();
-  if (!validateId(id)) return;
-  id = parseInt(id);
-  const index = tasks.findIndex(task => task.id === id);
+  try {
+    loadTasks();
+    if (!validateId(id)) {
+      throw new Error('Error: Please provide a valid task ID.');
+    };
 
-  if (index === -1) {
-    console.log(`Task [ID: ${id}] is not found.`);
-    return;
+    id = parseInt(id);
+    const index = tasks.findIndex(task => task.id === id);
+
+    if (index === -1) {
+      console.log(`Task [ID: ${id}] is not found.`);
+      return;
+    }
+
+    tasks.splice(index, 1);
+    saveTasks();
+    console.log(`Task [ID: ${id}] is succesfully deleted.`);
+  } catch (error) {
+    console.error(error.message);
   }
-
-  tasks.splice(index, 1);
-  saveTasks();
-  console.log(`Task [ID: ${id}] is succesfully deleted.`);
 }
 
 export function markTaskStatus(id, status) {
-  loadTasks();
-  if (!validateId(id) || !validateStatus(status)) return;
+  try {
+    loadTasks();
+    if (!validateId(id)) {
+      throw new Error('Error: Please provide a valid task ID.');
+    };
 
-  id = parseInt(id);
+    if (!validateStatus(status)) {
+      throw new Error('Error: Please provide a valid status (todo, in-progress, done).');
+    }
 
-  const task = tasks.find(task => task.id === id);
+    id = parseInt(id);
 
-  if (!task) {
-    console.log(`Task [ID: ${id}] is not found.`);
-    return;
+    const task = tasks.find(task => task.id === id);
+
+    if (!task) {
+      console.log(`Task [ID: ${id}] is not found.`);
+      return;
+    }
+
+    task.status = status;
+    task.updatedAt = (new Date()).toISOString();
+    saveTasks();
+    console.log(`Task [ID: ${id}] status changed to: ${status}`);
+  } catch (error) {
+    console.error(error.message)
   }
-
-  task.status = status;
-  task.updatedAt = (new Date()).toISOString();
-  saveTasks();
-  console.log(`Task [ID: ${id}] status changed to: ${status}`);
 }
