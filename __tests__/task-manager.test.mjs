@@ -77,11 +77,14 @@ describe('Task management', () => {
     expect(testTasks[0].id).toEqual(1);
     expect(testTasks[0].description).toEqual('Test Task 1');
     expect(testTasks[0].status).toEqual('todo');
+    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
 
     updateTask(1, 'Updated Task');
     expect(testTasks[0].id).toEqual(1);
     expect(testTasks[0].description).toEqual('Updated Task');
     expect(testTasks[0].status).toEqual('todo');
+    expect(testTasks[0].createdAt).not.toEqual(testTasks[0].updatedAt);
+    expect(new Date(testTasks[0].createdAt).getTime()).toBeLessThan(new Date(testTasks[0].updatedAt).getTime());
   });
 
   test('should not update a non-existent task', () => {
@@ -107,6 +110,7 @@ describe('Task management', () => {
     expect(testTasks[0].id).toEqual(1);
     expect(testTasks[0].description).toEqual('Test Task');
     expect(testTasks[0].status).toEqual('todo');
+    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
     expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid task description. Description cannot be empty.');
   });
 });
