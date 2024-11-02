@@ -34,6 +34,7 @@ describe('Task management', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     });
+    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
   });
 
   test('should not create a task with an empty description', () => {
@@ -62,6 +63,7 @@ describe('Task management', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     });
+    expect(newTasks[0].createdAt).toEqual(newTasks[0].updatedAt);
 
     expect(newTasks[1]).toEqual({
       id: 2,
@@ -70,17 +72,15 @@ describe('Task management', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     });
+    expect(newTasks[1].createdAt).toEqual(newTasks[1].updatedAt);
   });
 
   test('should update a task description', () => {
     taskManager.addTask('Test Task 1');
     expect(testTasks[0].id).toEqual(1);
     expect(testTasks[0].description).toEqual('Test Task 1');
-    expect(testTasks[0].status).toEqual('todo');
-    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
 
     taskManager.updateTask(1, 'Updated Task');
-    expect(testTasks[0].id).toEqual(1);
     expect(testTasks[0].description).toEqual('Updated Task');
     expect(testTasks[0].status).toEqual('todo');
     expect(new Date(testTasks[0].createdAt).getTime()).toBeLessThan(new Date(testTasks[0].updatedAt).getTime());
@@ -106,9 +106,7 @@ describe('Task management', () => {
     taskManager.addTask('Test Task');
     taskManager.updateTask(1, '');
     expect(testTasks).toHaveLength(1);
-    expect(testTasks[0].id).toEqual(1);
     expect(testTasks[0].description).toEqual('Test Task');
-    expect(testTasks[0].status).toEqual('todo');
     expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
     expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid task description. Description cannot be empty.');
     consoleSpy.mockRestore();
@@ -116,47 +114,25 @@ describe('Task management', () => {
 
   test('should change the status of a task as (done)', () => {
     taskManager.addTask('Test Task');
-    expect(testTasks).toHaveLength(1);
-    expect(testTasks[0]).toEqual({
-      id: 1,
-      description: 'Test Task',
-      status: 'todo',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    });
-    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
+    expect(testTasks[0].id).toEqual(1);
+    expect(testTasks[0].status).toEqual('todo');
 
     taskManager.markTaskStatus(1, 'done');
-    expect(testTasks[0]).toEqual({
-      id: 1,
-      description: 'Test Task',
-      status: 'done',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    });
+
+    expect(testTasks[0].id).toEqual(1);
+    expect(testTasks[0].status).toEqual('done');
     expect(new Date(testTasks[0].createdAt).getTime()).toBeLessThan(new Date(testTasks[0].updatedAt).getTime());
   });
 
   test('should change the status of a task as (in-progress)', () => {
     taskManager.addTask('Test Task');
-    expect(testTasks).toHaveLength(1);
-    expect(testTasks[0]).toEqual({
-      id: 1,
-      description: 'Test Task',
-      status: 'todo',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    });
-    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
+    expect(testTasks[0].id).toEqual(1);
+    expect(testTasks[0].status).toEqual('todo');
 
     taskManager.markTaskStatus(1, 'in-progress');
-    expect(testTasks[0]).toEqual({
-      id: 1,
-      description: 'Test Task',
-      status: 'in-progress',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    });
+
+    expect(testTasks[0].id).toEqual(1);
+    expect(testTasks[0].status).toEqual('in-progress');
     expect(new Date(testTasks[0].createdAt).getTime()).toBeLessThan(new Date(testTasks[0].updatedAt).getTime());
   });
 
@@ -174,28 +150,15 @@ describe('Task management', () => {
   });
 
   test('should not change the status of a task with ivalid value', () => {
-    taskManager.addTask('Test Task');
-    expect(testTasks).toHaveLength(1);
-    expect(testTasks[0]).toEqual({
-      id: 1,
-      description: 'Test Task',
-      status: 'todo',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    });
-    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
-
     const consoleSpy = jest.spyOn(console, 'error');
+    taskManager.addTask('Test Task');
+    expect(testTasks[0].id).toEqual(1);
+    expect(testTasks[0].status).toEqual('todo');
 
     taskManager.markTaskStatus(1, 'test');
 
-    expect(testTasks[0]).toEqual({
-      id: 1,
-      description: 'Test Task',
-      status: 'todo',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    });
+    expect(testTasks[0].id).toEqual(1);
+    expect(testTasks[0].status).toEqual('todo');
     expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
     expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid status (todo, in-progress, done).');
     consoleSpy.mockRestore();

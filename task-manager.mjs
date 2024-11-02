@@ -74,9 +74,13 @@ export function addTask(description) {
     id: newTaskId++,
     description: description.trim(),
     status: 'todo',
-    createdAt: (new Date()).toISOString(),
-    updatedAt: (new Date()).toISOString(),
+    createdAt: '',
+    updatedAt: '',
   }
+
+  const date = (new Date()).toISOString();
+  task.createdAt = date;
+  task.updatedAt = date;
 
   tasks.push(task);
   saveTasks();
