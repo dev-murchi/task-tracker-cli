@@ -18,8 +18,8 @@ function loadTasks() {
       newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
     }
   } catch (error) {
-    tasks = [];
-    throw new Error('Error loading tasks:', error.message);
+    console.error(`Error: ${error.message}`);
+    throw new Error(`Loading tasks failed.`);
   }
 }
 
