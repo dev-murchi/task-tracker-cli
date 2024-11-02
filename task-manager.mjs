@@ -62,10 +62,12 @@ function validateStatus(status) {
 }
 
 export function getTasks() {
+  loadTasks();
   return tasks;
 }
 
 export function addTask(description) {
+  loadTasks();
   if (!validateDescription(description)) return;
 
   const task = {
@@ -82,6 +84,7 @@ export function addTask(description) {
 }
 
 export function updateTask(id, description) {
+  loadTasks();
   if (!validateId(id) || !validateDescription(description)) return;
 
   id = parseInt(id);
@@ -101,6 +104,7 @@ export function updateTask(id, description) {
 }
 
 export function deleteTask(id) {
+  loadTasks();
   if (!validateId(id)) return;
   id = parseInt(id);
   const index = tasks.findIndex(task => task.id === id);
@@ -116,6 +120,7 @@ export function deleteTask(id) {
 }
 
 export function markTaskStatus(id, status) {
+  loadTasks();
   if (!validateId(id) || !validateStatus(status)) return;
 
   id = parseInt(id);
@@ -132,6 +137,3 @@ export function markTaskStatus(id, status) {
   saveTasks();
   console.log(`Task [ID: ${id}] status changed to: ${status}`);
 }
-
-// Load tasks when the module is imported
-loadTasks();
