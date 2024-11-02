@@ -200,6 +200,27 @@ describe('Task management', () => {
     expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid status (todo, in-progress, done).');
     consoleSpy.mockRestore();
   });
+
+  test('should delete a task successfully', () => {
+    expect(testTasks).toHaveLength(0);
+    taskManager.addTask('Test Task');
+    expect(testTasks).toHaveLength(1);
+    taskManager.deleteTask(1);
+    expect(testTasks).toHaveLength(0);
+  });
+
+  test('should not delete a non-existent task', () => {
+    const consoleLogSpy = jest.spyOn(console, 'log');
+    expect(testTasks).toHaveLength(0);
+    taskManager.deleteTask(1);
+    expect(consoleLogSpy).toHaveBeenCalledWith('Task [ID: 1] is not found.');
+    consoleLogSpy.mockRestore();
+
+    const consoleErrorSpy = jest.spyOn(console, 'error');
+    taskManager.deleteTask('invalidId');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Please provide a valid task ID.');
+    consoleErrorSpy.mockRestore();
+  });
 });
 
 
