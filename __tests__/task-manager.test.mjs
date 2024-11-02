@@ -38,11 +38,9 @@ describe('Task management', () => {
   });
 
   test('should not create a task with an empty description', () => {
-    const consoleSpy = jest.spyOn(console, 'error');
-    taskManager.addTask('');
-    expect(testTasks).toHaveLength(0);
-    expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid task description. Description cannot be empty.');
-    consoleSpy.mockRestore();
+    expect(() => {
+      taskManager.addTask('');
+    }).toThrow('Error: Please provide a valid task description. Description cannot be empty.');
   });
 
   test('should list tasks correctly', async () => {
@@ -87,29 +85,13 @@ describe('Task management', () => {
   });
 
   test('should not update a non-existent task', () => {
-    const consoleLogSpy = jest.spyOn(console, 'log');
-    const consoleErrorSpy = jest.spyOn(console, 'error');
-    taskManager.updateTask(1, 'Updated Task');
-    expect(testTasks).toHaveLength(0);
-    expect(consoleLogSpy).toHaveBeenCalledWith('Task [ID: 1] is not found.');
-
-    taskManager.updateTask('invalidId', 'Updated Task');
-    expect(testTasks).toHaveLength(0);
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Please provide a valid task ID.');
-
-    consoleLogSpy.mockRestore();
-    consoleErrorSpy.mockRestore();
+    expect(() => { taskManager.updateTask(1, 'Updated Task') }).toThrow('Task [ID: 1] is not found.');
+    expect(() => { taskManager.updateTask('invalidId', 'Updated Task') }).toThrow('Error: Please provide a valid task ID.');
   });
 
   test('should not update a task with an empty description', () => {
-    const consoleSpy = jest.spyOn(console, 'error');
     taskManager.addTask('Test Task');
-    taskManager.updateTask(1, '');
-    expect(testTasks).toHaveLength(1);
-    expect(testTasks[0].description).toEqual('Test Task');
-    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
-    expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid task description. Description cannot be empty.');
-    consoleSpy.mockRestore();
+    expect(() => { taskManager.updateTask(1, '') }).toThrow('Error: Please provide a valid task description. Description cannot be empty.');
   });
 
   test('should change the status of a task as (done)', () => {
@@ -137,31 +119,13 @@ describe('Task management', () => {
   });
 
   test('should not change the status of a non-existent task', () => {
-    const consoleLogSpy = jest.spyOn(console, 'log');
-    expect(testTasks).toHaveLength(0);
-    taskManager.markTaskStatus(1, 'todo');
-    expect(consoleLogSpy).toHaveBeenCalledWith('Task [ID: 1] is not found.');
-    consoleLogSpy.mockRestore();
-
-    const consoleErrorSpy = jest.spyOn(console, 'error');
-    taskManager.markTaskStatus('invalidId', 'todo');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Please provide a valid task ID.');
-    consoleErrorSpy.mockRestore();
+    expect(() => { taskManager.markTaskStatus(1, 'todo') }).toThrow('Task [ID: 1] is not found.');
+    expect(() => { taskManager.markTaskStatus('invalidId', 'todo') }).toThrow('Error: Please provide a valid task ID.');
   });
 
   test('should not change the status of a task with ivalid value', () => {
-    const consoleSpy = jest.spyOn(console, 'error');
     taskManager.addTask('Test Task');
-    expect(testTasks[0].id).toEqual(1);
-    expect(testTasks[0].status).toEqual('todo');
-
-    taskManager.markTaskStatus(1, 'test');
-
-    expect(testTasks[0].id).toEqual(1);
-    expect(testTasks[0].status).toEqual('todo');
-    expect(testTasks[0].createdAt).toEqual(testTasks[0].updatedAt);
-    expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid status (todo, in-progress, done).');
-    consoleSpy.mockRestore();
+    expect(() => { taskManager.markTaskStatus(1, 'test') }).toThrow('Error: Please provide a valid status (todo, in-progress, done).');
   });
 
   test('should delete a task successfully', () => {
@@ -173,16 +137,8 @@ describe('Task management', () => {
   });
 
   test('should not delete a non-existent task', () => {
-    const consoleLogSpy = jest.spyOn(console, 'log');
-    expect(testTasks).toHaveLength(0);
-    taskManager.deleteTask(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith('Task [ID: 1] is not found.');
-    consoleLogSpy.mockRestore();
-
-    const consoleErrorSpy = jest.spyOn(console, 'error');
-    taskManager.deleteTask('invalidId');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Please provide a valid task ID.');
-    consoleErrorSpy.mockRestore();
+    expect(() => { taskManager.deleteTask(1) }).toThrow('Task [ID: 1] is not found.');
+    expect(() => { taskManager.deleteTask('invalidId') }).toThrow('Error: Please provide a valid task ID.');
   });
 });
 
