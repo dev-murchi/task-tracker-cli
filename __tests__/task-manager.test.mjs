@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals'
+import { jest } from '@jest/globals';
 
 let testTasks = [];
 let newTaskId = 1;
@@ -11,8 +11,8 @@ jest.unstable_mockModule('node:fs', () => ({
   existsSync: jest.fn(() => true),
 }));
 
-const { addTask } = await import('../task-manager.mjs');
 const { writeFileSync, readFileSync, existsSync } = await import('node:fs');
+const { addTask, getTasks } = await import('../task-manager.mjs');
 
 describe('Task management', () => {
   beforeEach(() => {
@@ -42,6 +42,34 @@ describe('Task management', () => {
     expect(testTasks).toHaveLength(0);
     expect(consoleSpy).toHaveBeenCalledWith('Error: Please provide a valid task description. Description cannot be empty.');
     consoleSpy.mockRestore();
+  });
+
+  test('should list tasks correctly', async () => {
+    const tasks = getTasks();
+    expect(tasks).toHaveLength(0);
+    expect(tasks).toStrictEqual(testTasks);
+
+    addTask('First Test Task');
+    addTask('Second Test Task');
+
+    const newTasks = getTasks();
+    expect(newTasks).toHaveLength(2);
+    expect(newTasks).toStrictEqual(testTasks);
+    expect(newTasks[0]).toEqual({
+      id: 1,
+      description: 'First Test Task',
+      status: 'todo',
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+
+    expect(newTasks[1]).toEqual({
+      id: 2,
+      description: 'Second Test Task',
+      status: 'todo',
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
   });
 });
 
