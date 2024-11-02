@@ -1,0 +1,22 @@
+{
+  "name": "task-tracker-cli",
+  "version": "1.0.0",
+  "description": "simple task tracker app",
+  "main": "app.mjs",
+  "repository": "https://github.com/dev-murchi/task-tracker-cli.git",
+  "author": "Murat ÇAY <murtcay@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "scripts": {
+    "test": "yarn node --experimental-vm-modules $(yarn bin jest)"
+  },
+  "jest": {
+    "testMatch": [
+      "**/__tests__/**/*.mjs?(x)",
+      "**/?(*.)+(spec|test).mjs?(x)"
+    ],
+    "transform": {}
+  }
+}
