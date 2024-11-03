@@ -12,14 +12,15 @@ let newTaskId = 1;
 // Load tasks from the JSON file
 function loadTasks() {
   try {
-    if (existsSync(dataFilePath)) {
-      const data = readFileSync(dataFilePath);
-      tasks = JSON.parse(data);
-      newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
+    if (!existsSync(dataFilePath)) {
+      throw new Error('Could not find data source.');
     }
+    const data = readFileSync(dataFilePath);
+    tasks = JSON.parse(data);
+    newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
   } catch (error) {
     console.error(`Error: ${error.message}`);
-    throw new Error(`Loading tasks failed.`);
+    throw new Error('Loading tasks failed.');
   }
 }
 

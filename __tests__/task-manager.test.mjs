@@ -63,9 +63,14 @@ describe('Task management', () => {
     }).toThrow('Error: Please provide a valid task description. Description cannot be empty.');
   });
 
-  test('should return an empty array when there is no task', async () => {
+  test('should return an empty array when there is no task', () => {
     const tasks = taskManager.getTasks();
     expect(tasks).toHaveLength(0);
+  });
+
+  test('should throw an error when non-existent data source is provided', () => {
+    existsSyncMock.mockReturnValue(false);
+    expect(() => { taskManager.getTasks() }).toThrow('Loading tasks failed.');
   });
 
   test('should return all tasks stored in file', () => {
