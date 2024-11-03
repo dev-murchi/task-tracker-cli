@@ -23,7 +23,7 @@ const readFileSyncMock = jest.fn();
 const writeFileSyncMock = jest.fn((path, data) => {
   storedTasks = JSON.parse(data);
 });
-const existsSyncMock = jest.fn(() => true);
+const existsSyncMock = jest.fn();
 
 jest.unstable_mockModule('node:fs', () => ({
   readFileSync: readFileSyncMock,
@@ -39,6 +39,7 @@ describe('Task management', () => {
     jest.clearAllMocks();
     storedTasks = [];
     readFileSyncMock.mockReturnValue(JSON.stringify([]));
+    existsSyncMock.mockReturnValue(true);
   });
 
   test('should create and save a new task', () => {
