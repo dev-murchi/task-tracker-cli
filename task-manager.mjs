@@ -1,37 +1,15 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import {
+  connect,
+  close,
+  findAll,
+  create,
+  updateById,
+  findById,
+  deleteById
+} from './db.mjs';
 
-const dataFilePath = join(process.cwd(), 'tasks.json');
-
-let tasks = [];
 
 const taskStatuses = ['todo', 'done', 'in-progress'];
-
-let newTaskId = 1;
-
-// Load tasks from the JSON file
-function loadTasks() {
-  try {
-    if (!existsSync(dataFilePath)) {
-      throw new Error('Could not find data source.');
-    }
-    const data = readFileSync(dataFilePath);
-    tasks = JSON.parse(data);
-    newTaskId = (tasks.length === 0) ? 1 : (Math.max(...tasks.map(task => task.id))) + 1;
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    throw new Error('Loading tasks failed.');
-  }
-}
-
-// Save tasks to the JSON file
-function saveTasks() {
-  try {
-    writeFileSync(dataFilePath, JSON.stringify(tasks, null, 2));
-  } catch (error) {
-    throw new Error(`Error saving tasks: ${error.message}`);
-  }
-}
 
 // Validate description
 function validateDescription(description) {
@@ -49,36 +27,25 @@ function validateStatus(status) {
   return taskStatuses.includes(status);
 }
 
-export function getTasks() {
-  loadTasks();
+export async function getTasks() {
+  await connect(process.env.DB_URL);
+  const tasks = await findAll();
+  await close();
   return tasks;
 }
 
-export function addTask(description) {
-  loadTasks();
+export async function addTask(description) {
+  await connect(process.env.DB_URL);
   if (!validateDescription(description)) {
     throw new Error('Error: Please provide a valid task description. Description cannot be empty.');
   };
 
-  const task = {
-    id: newTaskId++,
-    description: description.trim(),
-    status: 'todo',
-    createdAt: '',
-    updatedAt: '',
-  }
-
-  const date = (new Date()).toISOString();
-  task.createdAt = date;
-  task.updatedAt = date;
-
-  tasks.push(task);
-  saveTasks();
-  console.log(`Task created: [ID: ${task.id}] - ${task.description} (${task.status})`);
+  const task = await create(description.trim());
+  await close();
+  console.log(`Task created: [ID: ${task[0].taskid}] - ${task[0].description} (${task[0].status})`);
 }
 
-export function updateTask(id, description) {
-  loadTasks();
+export async function updateTask(id, description) {
   if (!validateId(id)) {
     throw new Error('Error: Please provide a valid task ID.');
   };
@@ -89,39 +56,40 @@ export function updateTask(id, description) {
 
   id = parseInt(id);
 
-  const task = tasks.find(task => task.id === id);
+  await connect(process.env.DB_URL);
+  const task = await findById(id);
 
-  if (!task) {
+  if (task.length === 0) {
+    await close();
     throw new Error(`Task [ID: ${id}] is not found.`);
   }
 
-  task.description = description.trim();
-  task.status = 'todo';
-  task.updatedAt = (new Date()).toISOString();
-  saveTasks();
-  console.log(`Task updated: [ID: ${id}] - ${task.description} (${task.status})`);
+  const updatedTask = await updateById(id, { description: description.trim(), status: 'TODO' })
+  await close();
+  console.log(`Task updated: [ID: ${updatedTask[0].taskid}] - ${updatedTask[0].description} (${updatedTask[0].status})`);
 }
 
-export function deleteTask(id) {
-  loadTasks();
+export async function deleteTask(id) {
   if (!validateId(id)) {
     throw new Error('Error: Please provide a valid task ID.');
   };
 
   id = parseInt(id);
-  const index = tasks.findIndex(task => task.id === id);
 
-  if (index === -1) {
+  await connect(process.env.DB_URL);
+  const task = await findById(id);
+
+  if (task.length === 0) {
+    await close();
     throw new Error(`Task [ID: ${id}] is not found.`);
   }
 
-  tasks.splice(index, 1);
-  saveTasks();
-  console.log(`Task [ID: ${id}] is succesfully deleted.`);
+  const deletedTask = await deleteById(id);
+  await close();
+  console.log(`Task [ID: ${deletedTask[0].taskid}] is succesfully deleted.`);
 }
 
-export function markTaskStatus(id, status) {
-  loadTasks();
+export async function markTaskStatus(id, status) {
   if (!validateId(id)) {
     throw new Error('Error: Please provide a valid task ID.');
   };
@@ -132,14 +100,15 @@ export function markTaskStatus(id, status) {
 
   id = parseInt(id);
 
-  const task = tasks.find(task => task.id === id);
+  await connect(process.env.DB_URL);
+  const task = await findById(id);
 
-  if (!task) {
+  if (task.length === 0) {
+    await close();
     throw new Error(`Task [ID: ${id}] is not found.`);
   }
 
-  task.status = status;
-  task.updatedAt = (new Date()).toISOString();
-  saveTasks();
-  console.log(`Task [ID: ${id}] status changed to: ${status}`);
+  const updatedTask = await updateById(id, { status: status.toUpperCase() })
+  await close();
+  console.log(`Task [ID: ${updatedTask[0].taskid}] status changed to: ${updatedTask[0].status}`);
 }
