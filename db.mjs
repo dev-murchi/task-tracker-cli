@@ -6,7 +6,7 @@ const { Client } = pg;
 let dbClient;
 
 // connect to database
-export async function connect(connectionString) {
+export async function connectDB(connectionString) {
   try {
     dbClient = new Client({ connectionString });
     await dbClient.connect();
@@ -18,7 +18,7 @@ export async function connect(connectionString) {
 }
 
 // close database connection
-export async function close() {
+export async function closeDB() {
   try {
     await dbClient.end();
     console.log('Disconnected from database')
@@ -48,7 +48,7 @@ export async function findById(id) {
     return response.rows;
   } catch (error) {
     console.error(error.stack)
-    throw new Error('Could not get required task.');
+    throw new Error('Could not get the task.');
   }
 }
 
@@ -61,7 +61,7 @@ export async function create(data) {
     return response.rows;
   } catch (error) {
     console.error(error.stack)
-    throw new Error("Could not create the task.");
+    throw new Error('Could not create the task.');
   }
 }
 
@@ -76,7 +76,7 @@ export async function updateById(id, data) {
     });
 
     if (fields.length === 0 && values.length === 0) {
-      throw new Error("No field is provided to update.");
+      throw new Error('No field is provided to update.');
     }
 
     const queryString = `UPDATE ${process.env.DB_TABLE} SET ${fields.join(', ')} WHERE ${process.env.DB_COLUMN1} = $1 RETURNING *;`;
@@ -84,7 +84,7 @@ export async function updateById(id, data) {
     return response.rows;
   } catch (error) {
     console.error(error.stack);
-    throw new Error("Could not update the task.");
+    throw new Error('Could not update the task.');
   }
 }
 
@@ -96,11 +96,11 @@ export async function deleteById(id) {
     const response = await dbClient.query(queryString, values);
 
     if (response.rows.length === 0) {
-      throw new Error("Task is not exist.");
+      throw new Error('Task is not exist.');
     }
     return response.rows;
   } catch (error) {
     console.error(error.stack);
-    throw new Error("Could not delete the task.");
+    throw new Error('Could not delete the task.');
   }
 }
