@@ -33,8 +33,8 @@ describe('Database Client', () => {
   });
 
   test('should fail while connecting to the database', async () => {
-    mClient.connect.mockRejectedValueOnce(new Error('DB Connection Fail'));
-    expect(async () => { await connectDB() }).rejects.toThrow('Error connecting to database.');
+    mClient.connect.mockRejectedValueOnce('DB Connection Fail');
+    expect(async () => { await connectDB() }).rejects.toThrow('DB Connection Fail');
     expect(mClient.connect).toHaveBeenCalledTimes(1);
   });
 
@@ -47,7 +47,7 @@ describe('Database Client', () => {
   test('should fail while closing the database connection', async () => {
     mClient.end.mockRejectedValueOnce('Connection could not closed.');
     await connectDB(dbUrl);
-    expect(async () => { await closeDB() }).rejects.toThrow('Error closing connection.');
+    expect(async () => { await closeDB() }).rejects.toThrow('Connection could not closed.');
     expect(mClient.end).toHaveBeenCalledTimes(1);
   });
 
@@ -60,7 +60,7 @@ describe('Database Client', () => {
   });
 
   test('should fail while getting tasks from database', async () => {
-    mClient.query.mockRejectedValueOnce('Invalid query string.');
+    mClient.query.mockRejectedValueOnce('Could not get tasks.');
     await connectDB(dbUrl);
     expect(async () => { await findAll() }).rejects.toThrow('Could not get tasks.');
     expect(mClient.query).toHaveBeenCalledTimes(1);
@@ -75,7 +75,7 @@ describe('Database Client', () => {
   });
 
   test('should fail while getting the task with given id', async () => {
-    mClient.query.mockRejectedValueOnce('Invalid query string.');
+    mClient.query.mockRejectedValueOnce('Could not get the task.');
     await connectDB(dbUrl);
     expect(async () => { await findById(1) }).rejects.toThrow('Could not get the task.');
     expect(mClient.query).toHaveBeenCalledTimes(1);
@@ -91,7 +91,7 @@ describe('Database Client', () => {
 
   test('should fail while creating a task', async () => {
     await connectDB(dbUrl);
-    mClient.query.mockRejectedValueOnce('Invalid query string.');
+    mClient.query.mockRejectedValueOnce('Could not create the task.');
     expect(async () => { await create('My first task.') }).rejects.toThrow('Could not create the task.');
     expect(mClient.query).toHaveBeenCalledTimes(1);
   });
@@ -115,10 +115,10 @@ describe('Database Client', () => {
 
   test('should fail while updating the task when no field is provided', async () => {
     await connectDB(dbUrl);
-    expect(async () => { await updateById(1, {}) }).rejects.toThrow('Could not update the task.');
+    expect(async () => { await updateById(1, {}) }).rejects.toThrow('Error: No field is provided to update.');
     expect(mClient.query).toHaveBeenCalledTimes(0);
 
-    mClient.query.mockRejectedValueOnce('Invalid query string.');
+    mClient.query.mockRejectedValueOnce('Could not update the task.');
     expect(async () => { await updateById(1, { test: 'test' }) }).rejects.toThrow('Could not update the task.');
     expect(mClient.query).toHaveBeenCalledTimes(1);
   });
@@ -134,8 +134,8 @@ describe('Database Client', () => {
   test('should fail while deleting the task', async () => {
     await connectDB(dbUrl);
     mClient.query.mockReturnValueOnce({ rows: [] });
-    mClient.query.mockRejectedValueOnce('Invalid query string.');
-    expect(async () => { await deleteById(1) }).rejects.toThrow('Could not delete the task.');
+    mClient.query.mockRejectedValueOnce('Could not delete the task.');
+    expect(async () => { await deleteById(1) }).rejects.toThrow('Error: Task is not exist.');
     expect(async () => { await deleteById(2) }).rejects.toThrow('Could not delete the task.');
     expect(mClient.query).toHaveBeenCalledTimes(2);
   });

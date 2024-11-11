@@ -4,157 +4,176 @@ let storedTasks = [];
 
 let mockTasks = [
   {
-    "id": 1,
+    "taskid": 1,
     "description": "Test Task 1",
-    "status": "todo",
-    "createdAt": "2024-11-02T21:49:55.903Z",
-    "updatedAt": "2024-11-02T21:49:55.903Z"
+    "status": "TODO",
   },
   {
-    "id": 2,
+    "taskid": 2,
     "description": "Test Task 2",
-    "status": "todo",
-    "createdAt": "2024-11-02T21:50:34.863Z",
-    "updatedAt": "2024-11-02T21:50:34.863Z"
+    "status": "TODO",
   }
 ];
 
-const readFileSyncMock = jest.fn();
-const writeFileSyncMock = jest.fn((path, data) => {
-  storedTasks = JSON.parse(data);
-});
-const existsSyncMock = jest.fn();
+const connectDBMock = jest.fn(() => { console.log('database connection') })
+const findAllMock = jest.fn(() => storedTasks);
 
-jest.unstable_mockModule('node:fs', () => ({
-  readFileSync: readFileSyncMock,
-  writeFileSync: writeFileSyncMock,
-  existsSync: existsSyncMock,
+jest.unstable_mockModule('../db.mjs', () => ({
+  connectDB: connectDBMock,
+  closeDB: jest.fn(),
+  findAll: findAllMock,
+  create: jest.fn((descr) => {
+    const index = storedTasks.length + 1;
+    const task = {
+      taskid: index,
+      description: descr,
+      status: 'TODO'
+    };
+    storedTasks.push(task);
+    return [task];
+  }),
+  updateById: jest.fn((id, data) => {
+    const index = storedTasks.findIndex(task => task.taskid === id);
+    if (index !== -1) {
+      if (data.description) {
+        storedTasks[index].description = data.description;
+      }
+      if (data.status) {
+        storedTasks[index].status = data.status;
+      }
+      return [storedTasks[index]];
+    }
+
+  }),
+  findById: jest.fn((id) => {
+    const index = storedTasks.findIndex(task => task.taskid === id);
+    if (index !== -1) {
+      return [storedTasks[index]];
+    }
+    return [];
+  }),
+  deleteById: jest.fn((id) => {
+    const index = storedTasks.findIndex(task => task.taskid === id);
+    if (index !== -1) {
+      const task = storedTasks[index];
+      storedTasks.splice(index, 1);
+      return [task];
+    }
+  })
 }));
 
-const { writeFileSync, readFileSync, existsSync } = await import('node:fs');
+const { } = await import('../db.mjs');
 const taskManager = await import('../task-manager.mjs');
 
 describe('Task management', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedTasks = [];
-    readFileSyncMock.mockReturnValue(JSON.stringify([]));
-    existsSyncMock.mockReturnValue(true);
   });
 
-  test('should create and save a new task', () => {
-    const description = 'Test task 1';
-
-    taskManager.addTask(description);
-
+  test('should create and save a new task', async () => {
+    await taskManager.addTask('Test task 1');
     expect(storedTasks).toHaveLength(1);
     expect(storedTasks[0]).toEqual({
-      id: 1,
+      taskid: 1,
       description: 'Test task 1',
-      status: 'todo',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      status: 'TODO'
     });
-    expect(storedTasks[0].createdAt).toEqual(storedTasks[0].updatedAt);
   });
 
-  test('should not create a task with an empty description', () => {
-    expect(() => {
-      taskManager.addTask('');
-    }).toThrow('Error: Please provide a valid task description. Description cannot be empty.');
+  test('should not create a task with an empty description', async () => {
+    expect(async () => {
+      await taskManager.addTask('');
+    }).rejects.toThrow('Error: Please provide a valid task description. Description cannot be empty.');
   });
 
-  test('should return an empty array when there is no task', () => {
-    const tasks = taskManager.getTasks();
+  test('should return an empty array when there is no task', async () => {
+    const tasks = await taskManager.getTasks();
     expect(tasks).toHaveLength(0);
   });
 
   test('should throw an error when non-existent data source is provided', () => {
-    existsSyncMock.mockReturnValue(false);
-    expect(() => { taskManager.getTasks() }).toThrow('Loading tasks failed.');
+    connectDBMock.mockRejectedValueOnce('Error connecting to database.');
+    expect(async () => { await taskManager.getTasks() }).rejects.toThrow('Loading tasks failed.');
   });
 
-  test('should return all tasks stored in file', () => {
-    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
-    const tasks = taskManager.getTasks();
-    expect(tasks).toStrictEqual(mockTasks);
+  test('should return all tasks stored in db', async () => {
+    storedTasks = mockTasks.map(task => Object.assign({}, task));
+    const tasks = await taskManager.getTasks();
+    expect(tasks).toStrictEqual(storedTasks);
   });
 
-  test('should update a task description', () => {
-    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
-    storedTasks = taskManager.getTasks();
+  test('should update a task description', async () => {
+    storedTasks = mockTasks.map(task => Object.assign({}, task));
+    const tasks = await taskManager.getTasks();
 
-    taskManager.updateTask(1, 'Updated Task - 1');
+    await taskManager.updateTask(1, 'Updated Task - 1');
     expect(storedTasks[0].description).toEqual('Updated Task - 1');
-    expect(storedTasks[0].status).toEqual('todo');
+    expect(storedTasks[0].status).toEqual('TODO');
 
-    taskManager.updateTask(2, 'Updated Task - 2');
+    await taskManager.updateTask(2, 'Updated Task - 2');
     expect(storedTasks[1].description).toEqual('Updated Task - 2');
-    expect(storedTasks[1].status).toEqual('todo');
+    expect(storedTasks[1].status).toEqual('TODO');
   });
 
-  test('should not update a non-existent task', () => {
-    expect(() => { taskManager.updateTask(1, 'Updated Task') }).toThrow('Task [ID: 1] is not found.');
-    expect(() => { taskManager.updateTask('invalidId', 'Updated Task') }).toThrow('Error: Please provide a valid task ID.');
+  test('should not update a non-existent task', async () => {
+    expect(async () => { await taskManager.updateTask(1, 'Updated Task') }).rejects.toThrow('Task [ID: 1] is not found.');
+    expect(async () => { await taskManager.updateTask('invalidId', 'Updated Task') }).rejects.toThrow('Error: Please provide a valid task ID.');
   });
 
-  test('should not update a task with an empty description', () => {
-    taskManager.addTask('Test Task');
-    expect(() => { taskManager.updateTask(1, '') }).toThrow('Error: Please provide a valid task description. Description cannot be empty.');
+  test('should not update a task with an empty description', async () => {
+    storedTasks = mockTasks.map(task => Object.assign({}, task));
+    expect(async () => { await taskManager.updateTask(1, '') }).rejects.toThrow('Error: Please provide a valid task description. Description cannot be empty.');
   });
 
-  test('should change the status of a task as (done)', () => {
-    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
-    storedTasks = taskManager.getTasks();
+  test('should change the status of a task as (done)', async () => {
+    storedTasks = mockTasks.map(task => Object.assign({}, task));
 
-    expect(storedTasks[0].status).toEqual('todo');
-    taskManager.markTaskStatus(1, 'done');
-    expect(storedTasks[0].status).toEqual('done');
+    expect(storedTasks[0].status).toEqual('TODO');
+    await taskManager.markTaskStatus(1, 'done');
+    expect(storedTasks[0].status).toEqual('DONE');
 
-    expect(storedTasks[1].status).toEqual('todo');
-    taskManager.markTaskStatus(2, 'done');
-    expect(storedTasks[1].status).toEqual('done');
+    expect(storedTasks[1].status).toEqual('TODO');
+    await taskManager.markTaskStatus(2, 'done');
+    expect(storedTasks[1].status).toEqual('DONE');
   });
 
-  test('should change the status of a task as (in-progress)', () => {
-    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
-    storedTasks = taskManager.getTasks();
+  test('should change the status of a task as (in-progress)', async () => {
+    storedTasks = mockTasks.map(task => Object.assign({}, task));
 
-    expect(storedTasks[0].status).toEqual('todo');
-    taskManager.markTaskStatus(1, 'in-progress');
-    expect(storedTasks[0].status).toEqual('in-progress');
+    expect(storedTasks[0].status).toEqual('TODO');
+    await taskManager.markTaskStatus(1, 'in-progress');
+    expect(storedTasks[0].status).toEqual('IN-PROGRESS');
 
-    expect(storedTasks[1].status).toEqual('todo');
-    taskManager.markTaskStatus(2, 'in-progress');
-    expect(storedTasks[1].status).toEqual('in-progress');
+    expect(storedTasks[1].status).toEqual('TODO');
+    await taskManager.markTaskStatus(2, 'in-progress');
+    expect(storedTasks[1].status).toEqual('IN-PROGRESS');
   });
 
-  test('should not change the status of a non-existent task', () => {
-    expect(() => { taskManager.markTaskStatus(1, 'todo') }).toThrow('Task [ID: 1] is not found.');
-    expect(() => { taskManager.markTaskStatus('invalidId', 'todo') }).toThrow('Error: Please provide a valid task ID.');
+  test('should not change the status of a non-existent task', async () => {
+    expect(async () => { await taskManager.markTaskStatus(1, 'todo') }).rejects.toThrow('Task [ID: 1] is not found.');
+    expect(async () => { await taskManager.markTaskStatus('invalidId', 'todo') }).rejects.toThrow('Error: Please provide a valid task ID.');
   });
 
-  test('should not change the status of a task with ivalid value', () => {
-    taskManager.addTask('Test Task');
-    expect(() => { taskManager.markTaskStatus(1, 'test') }).toThrow('Error: Please provide a valid status (todo, in-progress, done).');
+  test('should not change the status of a task with ivalid value', async () => {
+    storedTasks = mockTasks.map(task => Object.assign({}, task));
+    expect(async () => { await taskManager.markTaskStatus(1, 'test') }).rejects.toThrow('Error: Please provide a valid status (todo, in-progress, done).');
   });
 
-  test('should delete a task successfully', () => {
-    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
-    storedTasks = taskManager.getTasks();
-    taskManager.deleteTask(mockTasks[0].id);
+  test('should delete a task successfully', async () => {
+    storedTasks = mockTasks.map(task => Object.assign({}, task));
+
+    await taskManager.deleteTask(mockTasks[0].taskid);
     expect(storedTasks).toHaveLength(1);
     expect(storedTasks[0]).toStrictEqual(mockTasks[1]);
 
-    readFileSyncMock.mockReturnValue(JSON.stringify([mockTasks[1]]));
-    storedTasks = taskManager.getTasks();
-    taskManager.deleteTask(mockTasks[1].id);
+    await taskManager.deleteTask(mockTasks[1].taskid);
     expect(storedTasks).toHaveLength(0);
   });
 
-  test('should not delete a non-existent task', () => {
-    expect(() => { taskManager.deleteTask(1) }).toThrow('Task [ID: 1] is not found.');
-    expect(() => { taskManager.deleteTask('invalidId') }).toThrow('Error: Please provide a valid task ID.');
+  test('should not delete a non-existent task', async () => {
+    expect(async () => { await taskManager.deleteTask(1) }).rejects.toThrow('Task [ID: 1] is not found.');
+    expect(async () => { await taskManager.deleteTask('invalidId') }).rejects.toThrow('Error: Please provide a valid task ID.');
   });
 });
 

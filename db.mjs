@@ -12,8 +12,7 @@ export async function connectDB(connectionString) {
     await dbClient.connect();
     console.log('Connected to database.');
   } catch (error) {
-    console.error(error.stack);
-    throw new Error('Error connecting to database.');
+    throw new Error(error);
   }
 }
 
@@ -21,9 +20,9 @@ export async function connectDB(connectionString) {
 export async function closeDB() {
   try {
     await dbClient.end();
-    console.log('Disconnected from database')
+    console.log('Disconnected from database');
   } catch (error) {
-    throw new Error('Error closing connection.');
+    throw new Error(error);
   }
 }
 
@@ -34,8 +33,7 @@ export async function findAll() {
     const response = await dbClient.query(queryString);
     return response.rows;
   } catch (error) {
-    console.error(error.stack);
-    throw new Error('Could not get tasks.');
+    throw new Error(error);
   }
 }
 
@@ -47,8 +45,7 @@ export async function findById(id) {
     const response = await dbClient.query(queryString, values);
     return response.rows;
   } catch (error) {
-    console.error(error.stack)
-    throw new Error('Could not get the task.');
+    throw new Error(error);
   }
 }
 
@@ -60,8 +57,7 @@ export async function create(data) {
     const response = await dbClient.query(queryString, values);
     return response.rows;
   } catch (error) {
-    console.error(error.stack)
-    throw new Error('Could not create the task.');
+    throw new Error(error);
   }
 }
 
@@ -83,8 +79,7 @@ export async function updateById(id, data) {
     const response = await dbClient.query(queryString, [id, ...values]);
     return response.rows;
   } catch (error) {
-    console.error(error.stack);
-    throw new Error('Could not update the task.');
+    throw new Error(error);
   }
 }
 
@@ -100,7 +95,6 @@ export async function deleteById(id) {
     }
     return response.rows;
   } catch (error) {
-    console.error(error.stack);
-    throw new Error('Could not delete the task.');
+    throw new Error(error);
   }
 }
