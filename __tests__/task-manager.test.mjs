@@ -16,6 +16,20 @@ let mockTasks = [
     "status": "todo",
     "createdAt": "2024-11-02T21:50:34.863Z",
     "updatedAt": "2024-11-02T21:50:34.863Z"
+  },
+  {
+    "id": 3,
+    "description": "Test Task 3",
+    "status": "in-progress",
+    "createdAt": "2024-11-02T21:53:34.863Z",
+    "updatedAt": "2024-11-02T21:53:34.863Z"
+  },
+  {
+    "id": 4,
+    "description": "Test Task 4",
+    "status": "done",
+    "createdAt": "2024-11-02T21:57:34.863Z",
+    "updatedAt": "2024-11-02T21:57:34.863Z"
   }
 ];
 
@@ -78,6 +92,28 @@ describe('Task management', () => {
     readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
     const tasks = taskManager.getTasks();
     expect(tasks).toStrictEqual(mockTasks);
+  });
+
+  test('should return all tasks which has status (todo) stored in file', () => {
+    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
+    const tasks = taskManager.getTasks('todo');
+    expect(tasks).toStrictEqual([mockTasks[0], mockTasks[1]]);
+  });
+
+  test('should return all tasks which has status (in-progress) stored in file', () => {
+    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
+    const tasks = taskManager.getTasks('in-progress');
+    expect(tasks).toStrictEqual([mockTasks[2]]);
+  });
+
+  test('should return all tasks which has status (done) stored in file', () => {
+    readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
+    const tasks = taskManager.getTasks('done');
+    expect(tasks).toStrictEqual([mockTasks[3]]);
+  });
+
+  test('should throw an error when trying to get tasks with invalid status ', () => {
+    expect(() => { taskManager.getTasks('test') }).toThrow('Error: Please provide a valid status (todo, in-progress, done).');
   });
 
   test('should update a task description', () => {
@@ -143,13 +179,10 @@ describe('Task management', () => {
     readFileSyncMock.mockReturnValue(JSON.stringify(mockTasks));
     storedTasks = taskManager.getTasks();
     taskManager.deleteTask(mockTasks[0].id);
-    expect(storedTasks).toHaveLength(1);
+    expect(storedTasks).toHaveLength(3);
     expect(storedTasks[0]).toStrictEqual(mockTasks[1]);
-
-    readFileSyncMock.mockReturnValue(JSON.stringify([mockTasks[1]]));
-    storedTasks = taskManager.getTasks();
-    taskManager.deleteTask(mockTasks[1].id);
-    expect(storedTasks).toHaveLength(0);
+    expect(storedTasks[1]).toStrictEqual(mockTasks[2]);
+    expect(storedTasks[2]).toStrictEqual(mockTasks[3]);
   });
 
   test('should not delete a non-existent task', () => {

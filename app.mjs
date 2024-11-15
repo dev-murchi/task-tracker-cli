@@ -11,11 +11,14 @@ function runApp() {
     const cmd = args[0];
 
     if (cmd === 'list') {
-      const tasks = getTasks();
+      const status = args[1];
+      const tasks = getTasks(status);
       if (tasks.length === 0) {
         console.log('No tasks available.');
       }
-      tasks.forEach(task => console.log(`[${task.id}] - ${task.description} (${task.status})`));
+      else {
+        tasks.forEach(task => console.log(`[${task.id}] - ${task.description} (${task.status})`));
+      }
     }
     else if (cmd === 'add') {
       const description = args.slice(1).join(' ');

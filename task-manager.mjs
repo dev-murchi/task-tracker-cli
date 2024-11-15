@@ -49,9 +49,17 @@ function validateStatus(status) {
   return taskStatuses.includes(status);
 }
 
-export function getTasks() {
+export function getTasks(status) {
   loadTasks();
-  return tasks;
+
+  if (status === undefined) {
+    return tasks;
+  }
+  if (!validateStatus(status)) {
+    throw new Error('Error: Please provide a valid status (todo, in-progress, done).');
+  }
+
+  return tasks.filter(task => task.status === status)
 }
 
 export function addTask(description) {
