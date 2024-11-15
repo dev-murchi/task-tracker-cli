@@ -11,7 +11,8 @@ async function runApp() {
     const cmd = args[0];
 
     if (cmd === 'list') {
-      const tasks = await getTasks();
+      const status = args[1];
+      const tasks = await getTasks(status);
       if (tasks.length === 0) {
         console.log('No tasks available.');
       }

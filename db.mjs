@@ -37,6 +37,18 @@ export async function findAll() {
   }
 }
 
+// get a task by status
+export async function findByStatus(status) {
+  try {
+    const queryString = `SELECT ${process.env.DB_COLUMN1}, ${process.env.DB_COLUMN2}, ${process.env.DB_COLUMN3} FROM ${process.env.DB_TABLE} WHERE ${process.env.DB_COLUMN3} = $1;`;
+    const values = [id];
+    const response = await dbClient.query(queryString, values);
+    return response.rows;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
 // get a task by id
 export async function findById(id) {
   try {

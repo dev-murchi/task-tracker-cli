@@ -5,7 +5,8 @@ import {
   create,
   updateById,
   findById,
-  deleteById
+  deleteById,
+  findByStatus
 } from './db.mjs';
 
 
@@ -27,10 +28,22 @@ function validateStatus(status) {
   return taskStatuses.includes(status);
 }
 
-export async function getTasks() {
+export async function getTasks(status) {
+  if (status && !validateStatus(status)) {
+    throw new Error('Please provide a valid status (todo, in-progress, done).');
+  }
+
   try {
     await connectDB(process.env.DB_URL);
-    const tasks = await findAll();
+    let tasks;
+    if (status) {
+      console.log({ status })
+      tasks = await findByStatus(status.toUpperCase());
+    }
+    else {
+      tasks = await findAll();
+    }
+
     await closeDB();
     return tasks;
   } catch (error) {
@@ -41,7 +54,7 @@ export async function getTasks() {
 
 export async function addTask(description) {
   if (!validateDescription(description)) {
-    throw new Error('Error: Please provide a valid task description. Description cannot be empty.');
+    throw new Error('Please provide a valid task description. Description cannot be empty.');
   };
 
   try {
@@ -57,11 +70,11 @@ export async function addTask(description) {
 
 export async function updateTask(id, description) {
   if (!validateId(id)) {
-    throw new Error('Error: Please provide a valid task ID.');
+    throw new Error('Please provide a valid task ID.');
   };
 
   if (!validateDescription(description)) {
-    throw new Error('Error: Please provide a valid task description. Description cannot be empty.');
+    throw new Error('Please provide a valid task description. Description cannot be empty.');
   };
 
   id = parseInt(id);
@@ -86,7 +99,7 @@ export async function updateTask(id, description) {
 
 export async function deleteTask(id) {
   if (!validateId(id)) {
-    throw new Error('Error: Please provide a valid task ID.');
+    throw new Error('Please provide a valid task ID.');
   };
 
   id = parseInt(id);
@@ -111,11 +124,11 @@ export async function deleteTask(id) {
 
 export async function markTaskStatus(id, status) {
   if (!validateId(id)) {
-    throw new Error('Error: Please provide a valid task ID.');
+    throw new Error('Please provide a valid task ID.');
   };
 
   if (!validateStatus(status)) {
-    throw new Error('Error: Please provide a valid status (todo, in-progress, done).');
+    throw new Error('Please provide a valid status (todo, in-progress, done).');
   }
 
   try {
