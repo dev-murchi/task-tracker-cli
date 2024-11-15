@@ -117,7 +117,7 @@ describe('Task management', () => {
   });
 
   test('should not update a non-existent task', async () => {
-    expect(async () => { await taskManager.updateTask(1, 'Updated Task') }).rejects.toThrow('Task [ID: 1] is not found.');
+    expect(async () => { await taskManager.updateTask(1, 'Updated Task') }).rejects.toThrow('Could not update the task!');
     expect(async () => { await taskManager.updateTask('invalidId', 'Updated Task') }).rejects.toThrow('Error: Please provide a valid task ID.');
   });
 
@@ -151,7 +151,7 @@ describe('Task management', () => {
   });
 
   test('should not change the status of a non-existent task', async () => {
-    expect(async () => { await taskManager.markTaskStatus(1, 'todo') }).rejects.toThrow('Task [ID: 1] is not found.');
+    expect(async () => { await taskManager.markTaskStatus(1, 'todo') }).rejects.toThrow('Could not update the task status!');
     expect(async () => { await taskManager.markTaskStatus('invalidId', 'todo') }).rejects.toThrow('Error: Please provide a valid task ID.');
   });
 
@@ -172,7 +172,7 @@ describe('Task management', () => {
   });
 
   test('should not delete a non-existent task', async () => {
-    expect(async () => { await taskManager.deleteTask(1) }).rejects.toThrow('Task [ID: 1] is not found.');
+    expect(async () => { await taskManager.deleteTask(1) }).rejects.toThrow('Could not delete the task!');
     expect(async () => { await taskManager.deleteTask('invalidId') }).rejects.toThrow('Error: Please provide a valid task ID.');
   });
 });
